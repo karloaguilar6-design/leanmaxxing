@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="leanmaxxing">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<title>leanmaxxing</title>
+<style>
+:root {
+  --bg: #0a0a0b; --card: #1a1a1c; --card-top: #1f1f22; --chip: #232326; --chip-on: #38383c; --sheet: #141416;
+  --line: rgba(255,255,255,.08); --text: #f5f5f7; --muted: #8e8e93; --dim: #3a3a3c;
+  --ok: #30d158; --warn: #ffd60a; --bad: #ff453a;
+  /* un color fijo por variable; validado (dataviz, modo oscuro sobre --card) */
+  --s-w: #f5f5f7; --s-s: #3987e5; --s-k: #d95926; --s-st: #199e70; --s-c: #c98500; --s-p: #d55181; --s-f: #008300;
+  --sans: -apple-system, system-ui, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font: -apple-system-body; -webkit-text-size-adjust: 100%; }
+body { font-family: var(--sans); line-height: 1.35; color: var(--text); background: var(--bg); max-width: 480px; margin: 0 auto;
+  padding: calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 32px); -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; touch-action: manipulation; transition: opacity .12s; }
+button:active { opacity: .55; }
+:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+h2:focus { outline: 0; }
+.mono { font-family: var(--mono); font-size: .76rem; }
+.muted { color: var(--muted); }
+.ico { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+header { display: flex; justify-content: space-between; align-items: center; margin: 8px 0 20px; }
+h1 { font: 700 34px/1.1 var(--sans); letter-spacing: -.02em; }
+h2 { font: 700 22px/1.2 var(--sans); }
+.round { width: 52px; height: 52px; border-radius: 50%; background: var(--chip); display: grid; place-items: center; }
+.round .ico { width: 24px; height: 24px; }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.card { background: linear-gradient(var(--card-top), var(--card)); border: 1px solid var(--line); border-radius: 28px; padding: 20px; min-width: 0; }
+.wide { grid-column: 1 / -1; }
+.tile { display: flex; flex-direction: column; justify-content: space-between; gap: 20px; min-height: 180px; }
+.split { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.ttl { font-weight: 600; }
+.sub { color: var(--muted); font-size: .88rem; }
+.big { font: 600 56px/1 var(--sans); letter-spacing: -.03em; white-space: nowrap; }
+.mid { font: 600 40px/1 var(--sans); letter-spacing: -.02em; white-space: nowrap; }
+.big small, .mid small { font-size: .45em; font-weight: 500; color: var(--muted); margin-left: 4px; letter-spacing: 0; }
+.pace { text-align: right; }
+.st { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; }
+.ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+
+.ring { position: relative; width: 88px; height: 88px; display: grid; place-items: center; }
+.ring svg { position: absolute; inset: 0; transform: rotate(-90deg); fill: none; stroke-width: 8; stroke-linecap: round; }
+.ring circle { stroke: var(--dim); } .ring circle + circle { stroke: var(--text); }
+.ring b { font: 600 22px var(--sans); }
+
+.meter { height: 4px; border-radius: 2px; background: var(--dim); margin-top: 14px; }
+.meter i { display: block; height: 100%; border-radius: 2px; background: var(--text); }
+.waffle { display: grid; grid-template-rows: repeat(2, auto); grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; margin: 16px 0 12px; }
+.waffle i, .legend i { aspect-ratio: 1; border-radius: 2px; background: var(--dim); }
+.legend i { display: inline-block; width: 8px; margin: 0 4px 0 8px; } .legend i:first-child { margin-left: 0; }
+i.p { background: var(--s-p); } i.c { background: var(--s-c); } i.f { background: var(--s-f); }
+
+.bar { display: flex; justify-content: space-between; align-items: center; margin: 28px 0 12px; }
+.seg { display: flex; padding: 2px; border-radius: 999px; background: var(--chip); }
+.seg button, .chip { min-height: 44px; padding: 0 12px; border-radius: 999px; font: .76rem var(--mono); color: var(--muted); }
+.seg [aria-pressed=true] { background: var(--chip-on); color: var(--text); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--chip); border: 1px solid transparent; }
+.chip i { width: 10px; height: 2px; border-radius: 1px; background: var(--k); opacity: .35; }
+.chip[aria-pressed=true] { color: var(--text); background: var(--chip-on); border-color: rgba(255,255,255,.16); }
+.chip[aria-pressed=true] i { opacity: 1; }
+
+#box { position: relative; padding: 12px 0 4px; }
+#chart { display: block; width: 100%; height: 220px; touch-action: pan-y; }
+#chart path { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+#chart .grid { stroke: var(--line); }
+#chart .ax { font: 12px var(--mono); fill: var(--muted); paint-order: stroke; stroke: var(--card); stroke-width: 4px; stroke-linejoin: round; }
+#chart .raw { fill: rgba(245,245,247,.45); }
+#chart .dot { stroke: var(--card); stroke-width: 2; }
+#chart .xh { stroke: rgba(255,255,255,.4); }
+.tip { position: absolute; top: 8px; min-width: 128px; padding: 8px 10px; border-radius: 12px; background: rgba(40,40,44,.96);
+  border: 1px solid var(--line); font: 12px/1.6 var(--mono); pointer-events: none; white-space: nowrap; }
+.tip i { display: inline-block; width: 10px; height: 2px; border-radius: 1px; vertical-align: middle; margin-right: 6px; }
+.tip b { font-weight: 600; } .tip span { color: var(--muted); }
+
+details { margin-top: 4px; }
+summary { min-height: 44px; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .88rem; list-style: none; cursor: pointer; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "›"; font-size: 1.2em; transition: transform .2s; } details[open] summary::before { transform: rotate(90deg); }
+table { width: 100%; border-collapse: collapse; font: .76rem var(--mono); }
+th { padding: 8px 4px; color: var(--muted); font-weight: 400; text-align: right; }
+td { height: 44px; padding: 0 4px; text-align: right; border-top: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+td button { min-height: 44px; font: inherit; }
+tbody tr:active { background: var(--chip); }
+
+.months { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
+.month h3 { font: 600 .88rem var(--sans); text-align: center; text-transform: capitalize; margin-bottom: 12px; }
+.dots { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px 0; justify-items: center; }
+.dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--dim); }
+.dots .full { background: var(--text); } .dots .part { background: var(--muted); } .dots .x { visibility: hidden; }
+.month p { margin-top: 12px; text-align: center; }
+.key { display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center; margin-top: 16px; white-space: nowrap; }
+.key i { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+.backup { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-top: 24px; }
+.backup div { display: flex; gap: 8px; }
+.btn { min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--chip); font-size: .88rem; display: inline-flex; align-items: center; gap: 6px; }
+
+dialog { width: 100%; max-width: 480px; max-height: 94dvh; margin: auto auto 0; padding: 8px 20px calc(env(safe-area-inset-bottom) + 16px);
+  border: 0; border-radius: 32px 32px 0 0; background: var(--sheet); color: var(--text); overflow: auto; }
+dialog::backdrop { background: rgba(0,0,0,.6); }
+dialog[open] { animation: up .25s cubic-bezier(.2,.8,.2,1); }
+@keyframes up { from { transform: translateY(100%); } }
+.grab { width: 36px; height: 5px; border-radius: 3px; background: var(--dim); margin: 0 auto 16px; }
+.sec { margin: 20px 4px 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.fld { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 16px; margin-bottom: 8px; border-radius: 16px; background: var(--card); }
+.fld:focus-within { box-shadow: 0 0 0 2px rgba(255,255,255,.3); }
+.fld > span { flex: 1; }
+.fld input { width: 5ch; min-height: 44px; font: 600 17px var(--sans); text-align: right; color: var(--text); background: none; border: 0; outline: 0; }
+.fld input:invalid { color: var(--bad); }
+.fld input[name=sh], .fld input[name=sm] { width: 3ch; }
+.fld em { min-width: 2.2em; font-style: normal; font-size: .88rem; color: var(--muted); }
+input[type=date] { min-height: 44px; padding: 0 14px; border: 0; border-radius: 999px; font: .88rem var(--mono); color: var(--text); background: var(--chip); }
+#fk { margin: 4px 4px 12px; text-align: right; font: 600 22px var(--mono); }
+.primary { width: 100%; min-height: 52px; margin-top: 16px; border-radius: 999px; background: var(--text); color: #000; font-weight: 600; }
+.actions { display: flex; justify-content: space-between; margin-top: 4px; }
+.actions button { min-height: 44px; padding: 0 8px; color: var(--muted); }
+.actions .bad { color: var(--bad); }
+@media (prefers-reduced-motion: reduce) { *, ::before { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <div><h1>leanmaxxing</h1><p class="sub" id="hoy"></p></div>
+  <button class="round" id="add" aria-label="Registrar día"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+</header>
+
+<main class="grid" id="tiles"></main>
+
+<div class="bar">
+  <h2>Tendencias</h2>
+  <div class="seg" id="range"><button data-r="30">1M</button><button data-r="90">3M</button><button data-r="0">Todo</button></div>
+</div>
+<div class="chips" id="chips"></div>
+<div class="card" id="box"><svg id="chart" role="img"></svg><div class="tip" id="tip" hidden></div></div>
+<details>
+  <summary>Ver registros</summary>
+  <table><thead><tr><th>Fecha</th><th>Peso</th><th>Sueño</th><th>Kcal</th><th>P/C/G</th><th>Pasos</th></tr></thead><tbody id="rows"></tbody></table>
+</details>
+
+<section class="card" style="margin-top:12px">
+  <p class="ttl">Constancia</p>
+  <div class="months" id="months"></div>
+  <p class="key mono muted"><span><i style="background:var(--text)"></i>completo</span><span><i style="background:var(--muted)"></i>parcial</span><span><i style="background:var(--dim)"></i>sin registro</span></p>
+</section>
+
+<div class="backup">
+  <p class="mono muted" id="bk"></p>
+  <div>
+    <button class="btn" id="exp"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 10l5 5 5-5M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>Exportar</button>
+    <button class="btn" id="impb"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>Importar</button>
+    <input type="file" id="imp" accept=".json,application/json" hidden>
+  </div>
+</div>
+
+<dialog id="sheet" aria-labelledby="sheet-t">
+  <form id="f">
+    <div class="grab" aria-hidden="true"></div>
+    <div class="split" style="align-items:center"><h2 id="sheet-t" tabindex="-1" autofocus>Registrar</h2><input type="date" name="d" aria-label="Fecha del registro" required></div>
+    <p class="sec mono">Esta mañana</p>
+    <label class="fld"><span>Peso</span><input name="w" inputmode="decimal" autocomplete="off"><em>kg</em></label>
+    <div class="fld"><span>Sueño anoche</span><input name="sh" inputmode="numeric" aria-label="Horas de sueño"><em>h</em><input name="sm" inputmode="numeric" aria-label="Minutos de sueño"><em>min</em></div>
+    <p class="sec mono">Ayer</p>
+    <label class="fld"><span>Proteína</span><input name="p" inputmode="decimal"><em>g</em></label>
+    <label class="fld"><span>Carbohidratos</span><input name="c" inputmode="decimal"><em>g</em></label>
+    <label class="fld"><span>Grasas</span><input name="f" inputmode="decimal"><em>g</em></label>
+    <p id="fk" aria-live="polite"></p>
+    <label class="fld"><span>Pasos</span><input name="st" inputmode="numeric"><em></em></label>
+    <button class="primary">Guardar</button>
+    <div class="actions"><button type="button" class="bad" id="del">Borrar día</button><button type="button" id="cancel">Cancelar</button></div>
+  </form>
+</dialog>
+
+<script src="calc.js"></script>
+<script>
+const KEY = 'leanmaxxing.v1', UIKEY = 'leanmaxxing.ui', $ = s => document.querySelector(s)
+let db = {}
+try { db = JSON.parse(localStorage.getItem(KEY)) || {} }
+catch { localStorage.setItem(KEY + '.ilegible', localStorage.getItem(KEY)); alert('No pude leer tus datos; guardé una copia. Importa tu último respaldo.') }
+const ui = { on: ['w', 'k'], range: 30 }
+try { Object.assign(ui, JSON.parse(localStorage.getItem(UIKEY))) } catch {}
+const saveUi = () => { try { localStorage.setItem(UIKEY, JSON.stringify(ui)) } catch {} }
+function persist() {
+  try { localStorage.setItem(KEY, JSON.stringify(db)); return true }
+  catch { alert('No se pudo guardar en el teléfono. Exporta un respaldo.'); return false }
+}
+navigator.storage?.persist?.()
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js')
+
+const n0 = v => Math.round(v).toLocaleString('es-MX')
+const n1 = v => v.toLocaleString('es-MX', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+const hm = m => Math.floor(m / 60) + ':' + String(Math.round(m % 60)).padStart(2, '0')
+const sign = v => (v < 0 ? '−' : '+') + Math.abs(v).toFixed(2)
+const short = v => v >= 1e4 ? (v / 1e3).toFixed(1) + 'k' : n0(v)
+const fmt = (d, o = { day: 'numeric', month: 'short' }) => new Date(d + 'T12:00').toLocaleDateString('es-MX', o)
+const ago = d => { const n = Math.round((Date.parse(today()) - Date.parse(d)) / 864e5); return n < 1 ? 'hoy' : n == 1 ? 'ayer' : `hace ${n} días` }
+const ico = d => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`
+const NONE = '<span class="muted">–</span>'
+
+const SERIES = [
+  ['w', 'Peso', r => r.w, v => n1(v) + ' kg'],
+  ['s', 'Sueño', r => r.s, v => hm(v) + ' h'],
+  ['k', 'Calorías', kcal, v => n0(v) + ' kcal'],
+  ['st', 'Pasos', r => r.st, n0],
+  ['c', 'Carbos', r => r.c, v => n0(v) + ' g'],
+  ['p', 'Proteína', r => r.p, v => n0(v) + ' g'],
+  ['f', 'Grasas', r => r.f, v => n0(v) + ' g'],
+].map(([k, name, get, show]) => ({ k, name, get, show }))
+
+function render() {
+  const t = today(), keys = Object.keys(db).sort(), r = db[keys.at(-1)] || {}
+  const lastW = keys.filter(d => db[d].w != null).at(-1), tr = trend(db), m = model(db, t), k = kcal(r)
+  const st = m.rate == null ? null
+    : m.rate < GOAL - .2 ? ['bad', 'muy rápido', '<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0"/>']
+    : m.rate > GOAL + .2 ? ['warn', 'lento', '<path d="M5 12h14"/>'] : ['ok', 'en meta', '<path d="M20 6 9 17l-5-5"/>']
+  const pc = k ? Math.round(400 * r.p / k) : 0, cc = k ? Math.round(400 * r.c / k) : 0, fc = Math.max(0, 100 - pc - cc)
+  const C = 2 * Math.PI * 38
+  const ring = (v, goal, txt) => `<div class="ring"><svg viewBox="0 0 88 88" aria-hidden="true"><circle cx="44" cy="44" r="38"/>${v ? `<circle cx="44" cy="44" r="38" stroke-dasharray="${Math.min(v / goal, 1) * C} ${C}"/>` : ''}</svg><b>${txt}</b></div>`
+
+  $('#hoy').textContent = fmt(t, { weekday: 'long', day: 'numeric', month: 'long' }) + (db[t] ? '' : ' · falta tu registro')
+  $('#tiles').innerHTML = `
+  <section class="card wide tile" style="min-height:0">
+    <div class="split">
+      <p class="big">${lastW ? n1(tr[lastW]) : NONE}<small>kg</small></p>
+      <div class="pace mono">${st ? `<p>${sign(m.rate)} kg/sem</p><p class="st ${st[0]}">${ico(st[2])}${st[1]}</p>` : `<p class="muted">calibrando<br>${m.n}/${MIN_DAYS} días</p>`}</div>
+    </div>
+    <div><p class="ttl">Peso · tendencia</p><p class="sub">${lastW ? `${lastW == t ? 'hoy' : fmt(lastW)} ${n1(db[lastW].w)} kg` : 'pésate al despertar y registra'}</p></div>
+  </section>
+  <section class="card tile">${ring(r.s, SLEEP_GOAL, r.s != null ? hm(r.s) : NONE)}<div><p class="ttl">Sueño</p><p class="sub">anoche · meta 8 h</p></div></section>
+  <section class="card tile">${ring(r.st, STEPS_GOAL, r.st != null ? short(r.st) : NONE)}<div><p class="ttl">Pasos</p><p class="sub">ayer · meta 8k</p></div></section>
+  <section class="card wide">
+    <div class="split">
+      <div><p class="ttl">Meta de hoy</p><p class="sub">${m.target ? (m.pace > GOAL + 1e-6 ? `tope sostenible · ${sign(m.pace)} kg/sem` : 'para bajar 0.5 kg/sem') : 'calibrando · registra tal cual'}</p></div>
+      <p class="mid">${m.target ? `${n0(m.target)}<small>kcal</small>` : `${m.n}<small>/${MIN_DAYS} días</small>`}</p>
+    </div>
+    ${m.target ? `<p class="mono muted" style="margin-top:8px">mantenimiento ≈ ${n0(m.tdee)} kcal</p>` : `<div class="meter"><i style="width:${m.n / MIN_DAYS * 100}%"></i></div>`}
+    <div class="waffle" aria-hidden="true">${Array.from({ length: 50 }, (_, i) => `<i class="${!k ? '' : i < pc / 2 ? 'p' : i < (pc + cc) / 2 ? 'c' : 'f'}"></i>`).join('')}</div>
+    <p class="mono muted legend">${k ? `<i class="p"></i>P ${pc}% <i class="c"></i>C ${cc}% <i class="f"></i>G ${fc}% · ayer ${n0(k)} kcal` : 'sin macros de ayer'}</p>
+  </section>`
+  for (const b of $('#range').children) b.setAttribute('aria-pressed', +b.dataset.r == ui.range)
+  $('#bk').textContent = 'Respaldo · ' + (ui.backup ? ago(ui.backup) : 'nunca')
+  drawChart(); drawRows(); drawMonths()
+}
+
+// gráfica: cada serie como desviación de su promedio en el rango (un solo eje); el peso como puntos + tendencia
+const svg = $('#chart'), tip = $('#tip')
+let G = null   // estado para el dedo
+function drawChart() {
+  const W = $('#box').clientWidth, H = 220, L = 12, R = 12, T = 14, B = 28
+  const t = today(), first = Object.keys(db).sort()[0] || t
+  const n = ui.range || Math.max(7, Math.round((Date.parse(t) - Date.parse(first)) / 864e5) + 1)
+  const days = Array.from({ length: n }, (_, i) => addDays(t, i + 1 - n))
+  const X = i => L + i * (W - L - R) / (n - 1), Y = z => T + (2.5 - z) / 5 * (H - T - B)
+  const tr = trend(db)
+  const lines = SERIES.filter(s => ui.on.includes(s.k)).map(s => {
+    const vals = days.map(d => db[d] ? s.get(db[d]) ?? null : null)
+    return { s, vals, count: vals.filter(v => v != null).length, ...zscore(vals) }
+  }).filter(l => l.count)
+  let g = ''
+  G = null
+  if (!lines.some(l => l.count > 1)) g = `<text class="ax" x="${W / 2}" y="${H / 2}" text-anchor="middle">Registra 2 días para ver la gráfica</text>`
+  else {
+    const one = lines.length == 1 && lines[0]
+    let ax = ''   // las etiquetas van encima de las líneas, con halo
+    for (const z of [2, 0, -2]) {
+      g += `<line class="grid" x1="${L}" x2="${W - R}" y1="${Y(z)}" y2="${Y(z)}"/>`
+      ax += `<text class="ax" x="${L}" y="${Y(z) - 5}">${one ? one.s.show(one.m + z * one.sd) : z > 0 ? 'alto' : z < 0 ? 'bajo' : 'promedio'}</text>`
+    }
+    for (const i of new Set([0, Math.round((n - 1) / 3), Math.round(2 * (n - 1) / 3), n - 1]))
+      ax += `<text class="ax" x="${X(i)}" y="${H - 8}" text-anchor="${i == 0 ? 'start' : i == n - 1 ? 'end' : 'middle'}">${fmt(days[i])}</text>`
+    for (const l of lines) {
+      const k = l.s.k, col = `var(--s-${k})`
+      if (k == 'w') {
+        l.vals.forEach((v, i) => { if (v != null) g += `<circle class="raw" cx="${X(i).toFixed(1)}" cy="${Y(l.z[i]).toFixed(1)}" r="2.5"/>` })
+        l.line = days.map(d => tr[d] == null ? null : Math.max(-2.5, Math.min(2.5, (tr[d] - l.m) / l.sd)))
+      } else l.line = l.z
+      let d = '', pen = false, end = -1
+      l.line.forEach((v, i) => {
+        if (v == null) { pen = pen && k == 'w'; return }   // los huecos cortan la línea; la tendencia sigue
+        d += (pen ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); pen = true; end = i
+      })
+      g += `<path d="${d}" style="stroke:${col}"/>`
+      if (end >= 0) g += `<circle class="dot" cx="${X(end).toFixed(1)}" cy="${Y(l.line[end]).toFixed(1)}" r="4" style="fill:${col}"/>`
+    }
+    g += ax + `<line class="xh" id="xh" y1="${T}" y2="${H - B}" visibility="hidden"/><g id="hl"></g>`
+    G = { n, X, Y, days, lines, tr, W }
+  }
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`)
+  svg.innerHTML = g
+  svg.setAttribute('aria-label', `Gráfica de ${lines.map(l => l.s.name).join(', ') || 'ninguna serie'} en ${n} días; los valores están en Ver registros`)
+}
+function scrub(e) {
+  if (!G) return
+  const { n, X, Y, days, lines, tr, W } = G
+  const i = Math.max(0, Math.min(n - 1, Math.round((e.clientX - svg.getBoundingClientRect().left - X(0)) / (X(1) - X(0)))))
+  const x = X(i), d = days[i], xh = $('#xh')
+  xh.setAttribute('x1', x); xh.setAttribute('x2', x); xh.setAttribute('visibility', 'visible')
+  $('#hl').innerHTML = lines.map(l => l.z[i] == null ? '' : `<circle class="dot" cx="${x}" cy="${Y(l.z[i])}" r="4" style="fill:var(--s-${l.s.k})"/>`).join('')
+  tip.innerHTML = `<p class="muted">${fmt(d, { weekday: 'short', day: 'numeric', month: 'short' })}</p>` +
+    (lines.map(l => l.vals[i] == null ? '' : `<p><i style="background:var(--s-${l.s.k})"></i><b>${l.s.show(l.vals[i])}</b> <span>${l.s.name}</span></p>`).join('') || '<p class="muted">sin registro</p>') +
+    (lines.some(l => l.s.k == 'w') && tr[d] != null ? `<p><i style="background:var(--s-w)"></i><b>${n1(tr[d])} kg</b> <span>tendencia</span></p>` : '')
+  tip.hidden = false
+  tip.style.left = (x + 12 + tip.offsetWidth > W ? x - 12 - tip.offsetWidth : x + 12) + 'px'
+}
+function unscrub() {
+  tip.hidden = true
+  $('#xh')?.setAttribute('visibility', 'hidden')
+  if ($('#hl')) $('#hl').innerHTML = ''
+}
+svg.addEventListener('pointerdown', scrub)
+svg.addEventListener('pointermove', scrub)
+for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) svg.addEventListener(ev, unscrub)
+
+function drawRows() {
+  const from = ui.range ? addDays(today(), 1 - ui.range) : ''
+  const v = (x, f) => x == null ? '·' : f(x)
+  $('#rows').innerHTML = Object.keys(db).filter(d => d >= from).sort().reverse().map(d => {
+    const r = db[d]
+    return `<tr data-d="${d}"><td><button>${fmt(d)}</button></td><td>${v(r.w, n1)}</td><td>${v(r.s, hm)}</td><td>${v(kcal(r), n0)}</td><td>${[r.p, r.c, r.f].map(x => v(x, n0)).join('/')}</td><td>${v(r.st, n0)}</td></tr>`
+  }).join('') || '<tr><td colspan="6" class="muted">Sin registros todavía</td></tr>'
+}
+$('#rows').onclick = e => { const d = e.target.closest('tr')?.dataset.d; if (d) openSheet(d) }
+
+function drawMonths() {
+  const t = today(), [y0, m0] = t.split('-').map(Number), all = ['w', 's', 'p', 'c', 'f', 'st']
+  $('#months').innerHTML = [2, 1, 0].map(back => {
+    const first = new Date(Date.UTC(y0, m0 - 1 - back, 1)), y = first.getUTCFullYear(), mo = first.getUTCMonth()
+    const len = new Date(Date.UTC(y, mo + 1, 0)).getUTCDate(), name = first.toLocaleDateString('es-MX', { month: 'short', timeZone: 'UTC' })
+    let cells = '<i class="x"></i>'.repeat((first.getUTCDay() + 6) % 7), done = 0, past = 0   // semanas desde el lunes
+    for (let day = 1; day <= len; day++) {
+      const d = `${y}-${String(mo + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`, r = db[d]
+      if (d > t) { cells += '<i class="x"></i>'; continue }
+      past++; if (r) done++
+      cells += `<i class="${r ? all.every(f => r[f] != null) ? 'full' : 'part' : ''}"></i>`
+    }
+    return `<div class="month" role="img" aria-label="${name}: ${done} de ${past} días registrados"><h3>${name}</h3><div class="dots">${cells}</div><p class="mono muted">${done}/${past}</p></div>`
+  }).join('')
+}
+
+$('#chips').innerHTML = SERIES.map(s => `<button class="chip" data-k="${s.k}" style="--k:var(--s-${s.k})" aria-pressed="${ui.on.includes(s.k)}"><i></i>${s.name}</button>`).join('')
+$('#chips').onclick = e => {
+  const b = e.target.closest('[data-k]')
+  if (!b) return
+  const k = b.dataset.k, on = !ui.on.includes(k)
+  ui.on = on ? [...ui.on, k] : ui.on.filter(x => x != k)
+  b.setAttribute('aria-pressed', on); saveUi(); unscrub(); drawChart()
+}
+$('#range').onclick = e => { const b = e.target.closest('[data-r]'); if (b) { ui.range = +b.dataset.r; saveUi(); unscrub(); render() } }
+
+// hoja de registro
+const sheet = $('#sheet'), F = $('#f'), E = F.elements
+const num = (el, int) => { const v = el.value.trim(); return v ? Number(int ? v.replace(/[.,\s]/g, '') : v.replace(',', '.')) : null }
+const liveKcal = () => { const k = kcal({ p: num(E.p), c: num(E.c), f: num(E.f) }); $('#fk').textContent = `= ${k == null || isNaN(k) ? '—' : n0(k)} kcal` }
+function fill(d) {
+  const r = db[d] || {}
+  for (const k of ['w', 'p', 'c', 'f', 'st']) E[k].value = r[k] ?? ''
+  E.sh.value = r.s == null ? '' : Math.floor(r.s / 60)
+  E.sm.value = r.s == null ? '' : r.s % 60
+  for (const el of F.querySelectorAll('input')) el.setCustomValidity('')
+  $('#del').hidden = !db[d]
+  liveKcal()
+}
+function openSheet(d) { E.d.max = today(); E.d.value = d; fill(d); sheet.showModal() }
+$('#add').onclick = () => openSheet(today())
+$('#cancel').onclick = () => sheet.close()
+sheet.onclick = e => { if (e.clientY < sheet.getBoundingClientRect().top) sheet.close() }
+E.d.onchange = () => E.d.value && fill(E.d.value)
+F.oninput = e => { e.target.setCustomValidity(''); liveKcal() }
+F.onsubmit = e => {
+  e.preventDefault()
+  const d = E.d.value, r = {}, sh = num(E.sh), sm = num(E.sm)
+  const fields = [['w', num(E.w), E.w], ['s', sh == null && sm == null ? null : (sh ?? 0) * 60 + (sm ?? 0), E.sh],
+    ['p', num(E.p), E.p], ['c', num(E.c), E.c], ['f', num(E.f), E.f], ['st', num(E.st, true), E.st]]
+  for (const [k, v, el] of fields) {
+    if (v == null) continue
+    const [lo, hi] = RANGES[k]
+    if (!(v >= lo && v <= hi)) { el.setCustomValidity(k == 's' ? 'Sueño entre 0 y 16 h' : `Entre ${n0(lo)} y ${n0(hi)}`); return el.reportValidity() }
+    r[k] = k == 'st' ? Math.round(v) : v
+  }
+  const prev = db[d]
+  if (Object.keys(r).length) db[d] = r; else delete db[d]
+  if (!persist()) { if (prev) db[d] = prev; else delete db[d]; return }
+  sheet.close(); render()
+}
+$('#del').onclick = () => {
+  const d = E.d.value, prev = db[d]
+  if (!confirm(`¿Borrar el registro del ${fmt(d)}?`)) return
+  delete db[d]
+  if (!persist()) { db[d] = prev; return }
+  sheet.close(); render()
+}
+
+// respaldo: hoja de compartir de iOS (Archivos/iCloud); si no se puede compartir, descarga
+$('#exp').onclick = async () => {
+  const file = new File([JSON.stringify(db)], `leanmaxxing-${today()}.json`, { type: 'application/json' })
+  try { await navigator.share({ files: [file] }) }
+  catch (err) {
+    if (err.name == 'AbortError') return   // cerraste la hoja de compartir
+    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name; a.click()
+  }
+  ui.backup = today(); saveUi(); render()
+}
+$('#impb').onclick = () => $('#imp').click()
+$('#imp').onchange = async e => {
+  const file = e.target.files[0]
+  e.target.value = ''
+  if (!file) return
+  let data = null
+  try { data = JSON.parse(await file.text()) } catch {}
+  if (!validDb(data)) return alert('Ese archivo no es un respaldo válido de leanmaxxing.')
+  if (!confirm(`Importar ${Object.keys(data).length} días. Los días que ya tienes se reemplazan por los del archivo.`)) return
+  Object.assign(db, data); persist(); render()
+}
+
+addEventListener('resize', () => { unscrub(); drawChart() })
+document.addEventListener('visibilitychange', () => { if (!document.hidden) render() })   // cambia "hoy" al volver a la app
+render()
+</script>
+</body>
+</html>
