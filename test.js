@@ -27,6 +27,23 @@ near(m.tdee, 1800); near(m.target, 1350); assert.ok(m.pace > L.GOAL)
 assert.deepStrictEqual(Object.values(L.trend(flat)), Array(20).fill(80))
 assert.deepStrictEqual(L.zscore([1, null, 3]).z, [-1, null, 1])
 
+// una meta más agresiva (−1 kg/sem) topa en el piso del 75 %
+m = L.model(db, '2026-10-28', -1)
+near(m.target, 0.75 * 2550)
+
+// mediana: impar y par
+assert.strictEqual(L.median([3, 1, 2]), 2)
+assert.strictEqual(L.median([4, 1, 3, 2]), 2.5)
+
+// semana lunes 19 a domingo 25 de octubre: 7 registros; el día raro de 86 kg no la mueve (la media daría 81)
+const wk = Object.fromEntries([80.4, 80.2, 80.0, 86.0, 79.9, 80.1, 80.3].map((w, i) => [L.addDays('2026-10-19', i), { w }]))
+wk['2026-10-18'] = { w: 81 }     // domingo anterior → semana del 12
+wk['2026-10-26'] = { w: 79.8 }   // lunes siguiente → semana nueva
+wk['2026-10-27'] = { s: 420 }    // día sin peso → no cuenta
+const ws = L.weekly(wk)
+assert.deepStrictEqual(ws.map(w => [w.mon, w.n]), [['2026-10-12', 1], ['2026-10-19', 7], ['2026-10-26', 1]])
+assert.strictEqual(ws[1].med, 80.2)
+
 // importación: solo respaldos válidos
 assert.ok(L.validDb({ '2026-10-24': { w: 84.6, s: 435, p: 150, c: 200, f: 60, st: 8420 } }))
 for (const bad of [null, [], { ayer: { w: 80 } }, { '2026-02-30': { w: 80 } }, { '2026-10-24': { w: 900 } },

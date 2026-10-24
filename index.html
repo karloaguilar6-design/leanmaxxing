@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0a0a0b">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -23,11 +23,14 @@
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { font: -apple-system-body; -webkit-text-size-adjust: 100%; }
+/* sin zoom con pellizco ni doble toque, como app; el tamaño de texto de iOS sigue funcionando */
+html { font: -apple-system-body; -webkit-text-size-adjust: 100%; touch-action: pan-x pan-y; }
+html:has(dialog[open]) { overflow: hidden; }
 body { font-family: var(--sans); line-height: 1.35; color: var(--text); background: var(--bg); max-width: 480px; margin: 0 auto;
   padding: calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 32px); -webkit-tap-highlight-color: transparent; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; touch-action: manipulation; transition: opacity .12s; }
 button:active { opacity: .55; }
+button:disabled { opacity: .3; }
 :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 h2:focus { outline: 0; }
 .mono { font-family: var(--mono); font-size: .76rem; }
@@ -35,6 +38,7 @@ h2:focus { outline: 0; }
 .ico { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
 header { display: flex; justify-content: space-between; align-items: center; margin: 8px 0 20px; }
+header .acts { display: flex; gap: 10px; }
 h1 { font: 700 34px/1.1 var(--sans); letter-spacing: -.02em; }
 h2 { font: 700 22px/1.2 var(--sans); }
 .round { width: 52px; height: 52px; border-radius: 50%; background: var(--chip); display: grid; place-items: center; }
@@ -44,9 +48,11 @@ h2 { font: 700 22px/1.2 var(--sans); }
 .card { background: linear-gradient(var(--card-top), var(--card)); border: 1px solid var(--line); border-radius: 28px; padding: 20px; min-width: 0; }
 .wide { grid-column: 1 / -1; }
 .tile { display: flex; flex-direction: column; justify-content: space-between; gap: 20px; min-height: 180px; }
+.tap { cursor: pointer; transition: opacity .12s; } .tap:active { opacity: .7; }
 .split { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .ttl { font-weight: 600; }
 .sub { color: var(--muted); font-size: .88rem; }
+.hint { font: .76rem var(--mono); color: var(--muted); white-space: nowrap; }
 .big { font: 600 56px/1 var(--sans); letter-spacing: -.03em; white-space: nowrap; }
 .mid { font: 600 40px/1 var(--sans); letter-spacing: -.02em; white-space: nowrap; }
 .big small, .mid small { font-size: .45em; font-weight: 500; color: var(--muted); margin-left: 4px; letter-spacing: 0; }
@@ -65,6 +71,9 @@ h2 { font: 700 22px/1.2 var(--sans); }
 .waffle i, .legend i { aspect-ratio: 1; border-radius: 2px; background: var(--dim); }
 .legend i { display: inline-block; width: 8px; margin: 0 4px 0 8px; } .legend i:first-child { margin-left: 0; }
 i.p { background: var(--s-p); } i.c { background: var(--s-c); } i.f { background: var(--s-f); }
+.mrow { display: grid; grid-template-columns: 1fr auto; gap: 6px 8px; margin-top: 12px; font-size: .88rem; }
+.mrow .meter { grid-column: 1 / -1; margin: 0; }
+.mp i { background: var(--s-p); } .mc i { background: var(--s-c); } .mf i { background: var(--s-f); }
 
 .bar { display: flex; justify-content: space-between; align-items: center; margin: 28px 0 12px; }
 .seg { display: flex; padding: 2px; border-radius: 999px; background: var(--chip); }
@@ -98,7 +107,7 @@ th { padding: 8px 4px; color: var(--muted); font-weight: 400; text-align: right;
 td { height: 44px; padding: 0 4px; text-align: right; border-top: 1px solid var(--line); white-space: nowrap; }
 th:first-child, td:first-child { text-align: left; }
 td button { min-height: 44px; font: inherit; }
-tbody tr:active { background: var(--chip); }
+#rows tr:active { background: var(--chip); }
 
 .months { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
 .month h3 { font: 600 .88rem var(--sans); text-align: center; text-transform: capitalize; margin-bottom: 12px; }
@@ -114,11 +123,17 @@ tbody tr:active { background: var(--chip); }
 .btn { min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--chip); font-size: .88rem; display: inline-flex; align-items: center; gap: 6px; }
 
 dialog { width: 100%; max-width: 480px; max-height: 94dvh; margin: auto auto 0; padding: 8px 20px calc(env(safe-area-inset-bottom) + 16px);
-  border: 0; border-radius: 32px 32px 0 0; background: var(--sheet); color: var(--text); overflow: auto; }
+  border: 0; border-radius: 32px 32px 0 0; background: var(--sheet); color: var(--text); overflow: auto; overscroll-behavior: contain; transition: transform .2s ease; }
 dialog::backdrop { background: rgba(0,0,0,.6); }
 dialog[open] { animation: up .25s cubic-bezier(.2,.8,.2,1); }
 @keyframes up { from { transform: translateY(100%); } }
+/* la barrita y el título: arrastrar hacia abajo cierra la hoja */
+.handle { touch-action: none; margin: -8px -20px 0; padding: 8px 20px 4px; }
 .grab { width: 36px; height: 5px; border-radius: 3px; background: var(--dim); margin: 0 auto 16px; }
+.day { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.day .round { width: 44px; height: 44px; flex: none; }
+.day input { flex: 1; min-width: 0; }
+input[type=date]::-webkit-date-and-time-value { text-align: center; }
 .sec { margin: 20px 4px 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 .fld { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 16px; margin-bottom: 8px; border-radius: 16px; background: var(--card); }
 .fld:focus-within { box-shadow: 0 0 0 2px rgba(255,255,255,.3); }
@@ -129,6 +144,7 @@ dialog[open] { animation: up .25s cubic-bezier(.2,.8,.2,1); }
 .fld em { min-width: 2.2em; font-style: normal; font-size: .88rem; color: var(--muted); }
 input[type=date] { min-height: 44px; padding: 0 14px; border: 0; border-radius: 999px; font: .88rem var(--mono); color: var(--text); background: var(--chip); }
 #fk { margin: 4px 4px 12px; text-align: right; font: 600 22px var(--mono); }
+.note { margin: 4px 4px 0; }
 .primary { width: 100%; min-height: 52px; margin-top: 16px; border-radius: 999px; background: var(--text); color: #000; font-weight: 600; }
 .actions { display: flex; justify-content: space-between; margin-top: 4px; }
 .actions button { min-height: 44px; padding: 0 8px; color: var(--muted); }
@@ -139,7 +155,10 @@ input[type=date] { min-height: 44px; padding: 0 14px; border: 0; border-radius: 
 <body>
 <header>
   <div><h1>leanmaxxing</h1><p class="sub" id="hoy"></p></div>
-  <button class="round" id="add" aria-label="Registrar día"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+  <div class="acts">
+    <button class="round" id="goalsb" aria-label="Metas"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/></svg></button>
+    <button class="round" id="add" aria-label="Registrar día"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+  </div>
 </header>
 
 <main class="grid" id="tiles"></main>
@@ -172,30 +191,65 @@ input[type=date] { min-height: 44px; padding: 0 14px; border: 0; border-radius: 
 
 <dialog id="sheet" aria-labelledby="sheet-t">
   <form id="f">
-    <div class="grab" aria-hidden="true"></div>
-    <div class="split" style="align-items:center"><h2 id="sheet-t" tabindex="-1" autofocus>Registrar</h2><input type="date" name="d" aria-label="Fecha del registro" required></div>
-    <p class="sec mono">Esta mañana</p>
+    <div class="handle"><div class="grab" aria-hidden="true"></div><h2 id="sheet-t" tabindex="-1" autofocus>Registrar</h2></div>
+    <div class="day">
+      <button type="button" class="round" id="prev" aria-label="Día anterior"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+      <input type="date" name="d" aria-label="Fecha del registro" required>
+      <button type="button" class="round" id="next" aria-label="Día siguiente"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+    </div>
+    <p class="sec mono" id="sec1">Esta mañana</p>
     <label class="fld"><span>Peso</span><input name="w" inputmode="decimal" autocomplete="off"><em>kg</em></label>
-    <div class="fld"><span>Sueño anoche</span><input name="sh" inputmode="numeric" aria-label="Horas de sueño"><em>h</em><input name="sm" inputmode="numeric" aria-label="Minutos de sueño"><em>min</em></div>
-    <p class="sec mono">Ayer</p>
+    <div class="fld"><span>Sueño</span><input name="sh" inputmode="numeric" aria-label="Horas de sueño"><em>h</em><input name="sm" inputmode="numeric" aria-label="Minutos de sueño"><em>min</em></div>
+    <p class="sec mono" id="sec2">Ayer</p>
     <label class="fld"><span>Proteína</span><input name="p" inputmode="decimal"><em>g</em></label>
     <label class="fld"><span>Carbohidratos</span><input name="c" inputmode="decimal"><em>g</em></label>
     <label class="fld"><span>Grasas</span><input name="f" inputmode="decimal"><em>g</em></label>
     <p id="fk" aria-live="polite"></p>
     <label class="fld"><span>Pasos</span><input name="st" inputmode="numeric"><em></em></label>
     <button class="primary">Guardar</button>
-    <div class="actions"><button type="button" class="bad" id="del">Borrar día</button><button type="button" id="cancel">Cancelar</button></div>
+    <div class="actions"><button type="button" class="bad" id="del">Borrar día</button><button type="button" data-close>Cancelar</button></div>
+  </form>
+</dialog>
+
+<dialog id="weeks" aria-labelledby="weeks-t">
+  <div class="handle"><div class="grab" aria-hidden="true"></div>
+    <div class="split" style="align-items:center"><h2 id="weeks-t" tabindex="-1" autofocus>Peso por semana</h2><button type="button" class="btn" data-close>Cerrar</button></div>
+  </div>
+  <p class="sub" style="margin:8px 0 12px">Mediana de lunes a domingo: un día raro (sal, carbos, báscula) no mueve la semana.</p>
+  <table><thead><tr><th>Semana</th><th>Días</th><th>Mediana</th><th>Cambio</th></tr></thead><tbody id="wrows"></tbody></table>
+</dialog>
+
+<dialog id="goals" aria-labelledby="goals-t">
+  <form id="gf">
+    <div class="handle"><div class="grab" aria-hidden="true"></div><h2 id="goals-t" tabindex="-1" autofocus>Metas</h2></div>
+    <p class="sec mono">Peso</p>
+    <label class="fld"><span>Bajar por semana</span><input name="rate" inputmode="decimal"><em>kg</em></label>
+    <label class="fld"><span>Peso meta <small class="muted">· opcional</small></span><input name="gw" inputmode="decimal"><em>kg</em></label>
+    <p class="sec mono">Hábitos</p>
+    <label class="fld"><span>Sueño</span><input name="sleep" inputmode="decimal"><em>h</em></label>
+    <label class="fld"><span>Pasos</span><input name="steps" inputmode="numeric"><em></em></label>
+    <p class="sec mono">Macros por día · opcional</p>
+    <label class="fld"><span>Proteína</span><input name="p" inputmode="decimal"><em>g</em></label>
+    <label class="fld"><span>Carbohidratos</span><input name="c" inputmode="decimal"><em>g</em></label>
+    <label class="fld"><span>Grasas</span><input name="f" inputmode="decimal"><em>g</em></label>
+    <p class="sub note" id="gk" aria-live="polite"></p>
+    <button class="primary">Guardar</button>
+    <div class="actions"><span></span><button type="button" data-close>Cancelar</button></div>
   </form>
 </dialog>
 
 <script src="calc.js"></script>
 <script>
-const KEY = 'leanmaxxing.v1', UIKEY = 'leanmaxxing.ui', $ = s => document.querySelector(s)
+const KEY = 'leanmaxxing.v1', UIKEY = 'leanmaxxing.ui', MKEY = 'leanmaxxing.metas', $ = s => document.querySelector(s)
 let db = {}
 try { db = JSON.parse(localStorage.getItem(KEY)) || {} }
 catch { localStorage.setItem(KEY + '.ilegible', localStorage.getItem(KEY)); alert('No pude leer tus datos; guardé una copia. Importa tu último respaldo.') }
 const ui = { on: ['w', 'k'], range: 30 }
 try { Object.assign(ui, JSON.parse(localStorage.getItem(UIKEY))) } catch {}
+// ponytail: las metas no viajan en el respaldo; son 7 números y se vuelven a escribir en segundos
+const DEFAULTS = { rate: GOAL, sleep: SLEEP_GOAL / 60, steps: STEPS_GOAL }
+let metas = { ...DEFAULTS }
+try { Object.assign(metas, JSON.parse(localStorage.getItem(MKEY))) } catch {}
 const saveUi = () => { try { localStorage.setItem(UIKEY, JSON.stringify(ui)) } catch {} }
 function persist() {
   try { localStorage.setItem(KEY, JSON.stringify(db)); return true }
@@ -203,9 +257,11 @@ function persist() {
 }
 navigator.storage?.persist?.()
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js')
+document.addEventListener('gesturestart', e => e.preventDefault())   // iOS: sin zoom con pellizco
 
 const n0 = v => Math.round(v).toLocaleString('es-MX')
 const n1 = v => v.toLocaleString('es-MX', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+const nn = v => v.toLocaleString('es-MX', { maximumFractionDigits: 2 })
 const hm = m => Math.floor(m / 60) + ':' + String(Math.round(m % 60)).padStart(2, '0')
 const sign = v => (v < 0 ? '−' : '+') + Math.abs(v).toFixed(2)
 const short = v => v >= 1e4 ? (v / 1e3).toFixed(1) + 'k' : n0(v)
@@ -213,6 +269,7 @@ const fmt = (d, o = { day: 'numeric', month: 'short' }) => new Date(d + 'T12:00'
 const ago = d => { const n = Math.round((Date.parse(today()) - Date.parse(d)) / 864e5); return n < 1 ? 'hoy' : n == 1 ? 'ayer' : `hace ${n} días` }
 const ico = d => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`
 const NONE = '<span class="muted">–</span>'
+const num = (el, int) => { const v = el.value.trim(); return v ? Number(int ? v.replace(/[.,\s]/g, '') : v.replace(',', '.')) : null }
 
 const SERIES = [
   ['w', 'Peso', r => r.w, v => n1(v) + ' kg'],
@@ -226,37 +283,59 @@ const SERIES = [
 
 function render() {
   const t = today(), keys = Object.keys(db).sort(), r = db[keys.at(-1)] || {}
-  const lastW = keys.filter(d => db[d].w != null).at(-1), tr = trend(db), m = model(db, t), k = kcal(r)
+  const lastW = keys.filter(d => db[d].w != null).at(-1), tr = trend(db), m = model(db, t, metas.rate), k = kcal(r)
   const st = m.rate == null ? null
-    : m.rate < GOAL - .2 ? ['bad', 'muy rápido', '<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0"/>']
-    : m.rate > GOAL + .2 ? ['warn', 'lento', '<path d="M5 12h14"/>'] : ['ok', 'en meta', '<path d="M20 6 9 17l-5-5"/>']
+    : m.rate < metas.rate - .2 ? ['bad', 'muy rápido', '<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0"/>']
+    : m.rate > metas.rate + .2 ? ['warn', 'lento', '<path d="M5 12h14"/>'] : ['ok', 'en meta', '<path d="M20 6 9 17l-5-5"/>']
   const pc = k ? Math.round(400 * r.p / k) : 0, cc = k ? Math.round(400 * r.c / k) : 0, fc = Math.max(0, 100 - pc - cc)
+  const left = lastW && metas.gw ? tr[lastW] - metas.gw : null
+  const toGoal = left == null ? '' : left <= 0 ? 'llegaste a tu peso meta'
+    : `faltan ${n1(left)} kg para ${nn(metas.gw)}` + (m.rate < -.05 ? ` · ~${Math.ceil(left / -m.rate)} sem` : '')
+  const macroGoals = [['p', 'Proteína'], ['c', 'Carbos'], ['f', 'Grasas']].filter(([q]) => metas[q])
   const C = 2 * Math.PI * 38
   const ring = (v, goal, txt) => `<div class="ring"><svg viewBox="0 0 88 88" aria-hidden="true"><circle cx="44" cy="44" r="38"/>${v ? `<circle cx="44" cy="44" r="38" stroke-dasharray="${Math.min(v / goal, 1) * C} ${C}"/>` : ''}</svg><b>${txt}</b></div>`
 
   $('#hoy').textContent = fmt(t, { weekday: 'long', day: 'numeric', month: 'long' }) + (db[t] ? '' : ' · falta tu registro')
   $('#tiles').innerHTML = `
-  <section class="card wide tile" style="min-height:0">
+  <section class="card wide tile tap" id="t-peso" role="button" tabindex="0" style="min-height:0">
     <div class="split">
       <p class="big">${lastW ? n1(tr[lastW]) : NONE}<small>kg</small></p>
       <div class="pace mono">${st ? `<p>${sign(m.rate)} kg/sem</p><p class="st ${st[0]}">${ico(st[2])}${st[1]}</p>` : `<p class="muted">calibrando<br>${m.n}/${MIN_DAYS} días</p>`}</div>
     </div>
-    <div><p class="ttl">Peso · tendencia</p><p class="sub">${lastW ? `${lastW == t ? 'hoy' : fmt(lastW)} ${n1(db[lastW].w)} kg` : 'pésate al despertar y registra'}</p></div>
+    <div class="split" style="align-items:flex-end">
+      <div><p class="ttl">Peso · tendencia</p><p class="sub">${lastW ? `${lastW == t ? 'hoy' : fmt(lastW)} ${n1(db[lastW].w)} kg` : 'pésate al despertar y registra'}</p>${toGoal ? `<p class="sub">${toGoal}</p>` : ''}</div>
+      <span class="hint" aria-hidden="true">semanas ›</span>
+    </div>
   </section>
-  <section class="card tile">${ring(r.s, SLEEP_GOAL, r.s != null ? hm(r.s) : NONE)}<div><p class="ttl">Sueño</p><p class="sub">anoche · meta 8 h</p></div></section>
-  <section class="card tile">${ring(r.st, STEPS_GOAL, r.st != null ? short(r.st) : NONE)}<div><p class="ttl">Pasos</p><p class="sub">ayer · meta 8k</p></div></section>
+  <section class="card tile">${ring(r.s, metas.sleep * 60, r.s != null ? hm(r.s) : NONE)}<div><p class="ttl">Sueño</p><p class="sub">anoche · meta ${nn(metas.sleep)} h</p></div></section>
+  <section class="card tile">${ring(r.st, metas.steps, r.st != null ? short(r.st) : NONE)}<div><p class="ttl">Pasos</p><p class="sub">ayer · meta ${n0(metas.steps)}</p></div></section>
   <section class="card wide">
     <div class="split">
-      <div><p class="ttl">Meta de hoy</p><p class="sub">${m.target ? (m.pace > GOAL + 1e-6 ? `tope sostenible · ${sign(m.pace)} kg/sem` : 'para bajar 0.5 kg/sem') : 'calibrando · registra tal cual'}</p></div>
+      <div><p class="ttl">Meta de hoy</p><p class="sub">${m.target ? (m.pace > metas.rate + 1e-6 ? `tope sostenible · ${sign(m.pace)} kg/sem` : metas.rate < 0 ? `para bajar ${nn(-metas.rate)} kg/sem` : 'para mantener tu peso') : 'calibrando · registra tal cual'}</p></div>
       <p class="mid">${m.target ? `${n0(m.target)}<small>kcal</small>` : `${m.n}<small>/${MIN_DAYS} días</small>`}</p>
     </div>
     ${m.target ? `<p class="mono muted" style="margin-top:8px">mantenimiento ≈ ${n0(m.tdee)} kcal</p>` : `<div class="meter"><i style="width:${m.n / MIN_DAYS * 100}%"></i></div>`}
     <div class="waffle" aria-hidden="true">${Array.from({ length: 50 }, (_, i) => `<i class="${!k ? '' : i < pc / 2 ? 'p' : i < (pc + cc) / 2 ? 'c' : 'f'}"></i>`).join('')}</div>
     <p class="mono muted legend">${k ? `<i class="p"></i>P ${pc}% <i class="c"></i>C ${cc}% <i class="f"></i>G ${fc}% · ayer ${n0(k)} kcal` : 'sin macros de ayer'}</p>
+    ${macroGoals.map(([q, name]) => `<div class="mrow"><span>${name}</span><span class="mono">${r[q] != null ? n0(r[q]) : '–'} / ${n0(metas[q])} g</span><div class="meter m${q}"><i style="width:${Math.min(100, (r[q] || 0) / metas[q] * 100)}%"></i></div></div>`).join('')}
   </section>`
   for (const b of $('#range').children) b.setAttribute('aria-pressed', +b.dataset.r == ui.range)
   $('#bk').textContent = 'Respaldo · ' + (ui.backup ? ago(ui.backup) : 'nunca')
   drawChart(); drawRows(); drawMonths()
+}
+$('#tiles').onclick = e => { if (e.target.closest('#t-peso')) openWeeks() }
+$('#tiles').onkeydown = e => { if (e.target.id == 't-peso' && (e.key == 'Enter' || e.key == ' ')) { e.preventDefault(); openWeeks() } }
+
+// peso por semana: mediana de lunes a domingo (descarta outliers mejor que la media)
+function openWeeks() {
+  const ws = weekly(db), t = today()
+  $('#wrows').innerHTML = ws.map((w, i) => {
+    const sun = addDays(w.mon, 6), prev = ws[i - 1]
+    const change = prev && prev.mon == addDays(w.mon, -7) ? sign(w.med - prev.med) : '·'
+    const name = (w.mon.slice(5, 7) == sun.slice(5, 7) ? +w.mon.slice(8) : fmt(w.mon)) + '–' + fmt(sun)
+    return `<tr><td>${name}${sun >= t ? '<br><span class="muted">en curso</span>' : ''}</td><td>${w.n}/7</td><td>${n1(w.med)} kg</td><td>${change}</td></tr>`
+  }).reverse().join('') || '<tr><td colspan="4" class="muted">Sin pesos registrados todavía</td></tr>'
+  $('#weeks').showModal()
 }
 
 // gráfica: cada serie como desviación de su promedio en el rango (un solo eje); el peso como puntos + tendencia
@@ -364,23 +443,49 @@ $('#chips').onclick = e => {
 }
 $('#range').onclick = e => { const b = e.target.closest('[data-r]'); if (b) { ui.range = +b.dataset.r; saveUi(); unscrub(); render() } }
 
-// hoja de registro
+// hojas: tocar fuera, Cancelar/Cerrar o arrastrar la barrita hacia abajo las cierra
+for (const dlg of document.querySelectorAll('dialog')) {
+  dlg.addEventListener('click', e => {
+    if ((e.target == dlg && e.clientY < dlg.getBoundingClientRect().top) || e.target.closest('[data-close]')) dlg.close()
+  })
+  const h = dlg.querySelector('.handle')
+  let y0 = null
+  h.addEventListener('pointerdown', e => {
+    if (e.target.closest('button, input')) return
+    y0 = e.clientY; h.setPointerCapture(e.pointerId); dlg.style.transition = 'none'
+  })
+  h.addEventListener('pointermove', e => { if (y0 != null) dlg.style.transform = `translateY(${Math.max(0, e.clientY - y0)}px)` })
+  const end = e => {
+    if (y0 == null) return
+    const away = e.clientY - y0 > 80
+    y0 = null; dlg.style.transition = ''
+    if (away) dlg.close()
+    dlg.style.transform = ''
+  }
+  h.addEventListener('pointerup', end)
+  h.addEventListener('pointercancel', end)
+}
+
+// hoja de registro; las flechas ‹ › cambian de día para llenar los que olvidaste
 const sheet = $('#sheet'), F = $('#f'), E = F.elements
-const num = (el, int) => { const v = el.value.trim(); return v ? Number(int ? v.replace(/[.,\s]/g, '') : v.replace(',', '.')) : null }
 const liveKcal = () => { const k = kcal({ p: num(E.p), c: num(E.c), f: num(E.f) }); $('#fk').textContent = `= ${k == null || isNaN(k) ? '—' : n0(k)} kcal` }
 function fill(d) {
-  const r = db[d] || {}
+  const r = db[d] || {}, t = today()
   for (const k of ['w', 'p', 'c', 'f', 'st']) E[k].value = r[k] ?? ''
   E.sh.value = r.s == null ? '' : Math.floor(r.s / 60)
   E.sm.value = r.s == null ? '' : r.s % 60
   for (const el of F.querySelectorAll('input')) el.setCustomValidity('')
+  $('#sec1').textContent = d == t ? 'Esta mañana' : `Mañana del ${fmt(d)}`
+  $('#sec2').textContent = `${d == t ? 'Ayer' : 'Día anterior'} · ${fmt(addDays(d, -1))}`
+  $('#next').disabled = d >= t
   $('#del').hidden = !db[d]
   liveKcal()
 }
 function openSheet(d) { E.d.max = today(); E.d.value = d; fill(d); sheet.showModal() }
+const step = n => { const d = addDays(E.d.value || today(), n); if (d <= today()) { E.d.value = d; fill(d) } }
 $('#add').onclick = () => openSheet(today())
-$('#cancel').onclick = () => sheet.close()
-sheet.onclick = e => { if (e.clientY < sheet.getBoundingClientRect().top) sheet.close() }
+$('#prev').onclick = () => step(-1)
+$('#next').onclick = () => step(1)
 E.d.onchange = () => E.d.value && fill(E.d.value)
 F.oninput = e => { e.target.setCustomValidity(''); liveKcal() }
 F.onsubmit = e => {
@@ -405,6 +510,32 @@ $('#del').onclick = () => {
   delete db[d]
   if (!persist()) { db[d] = prev; return }
   sheet.close(); render()
+}
+
+// metas: ritmo, peso meta, sueño, pasos y macros
+const GF = $('#gf'), GE = GF.elements
+const GOAL_RANGES = { rate: [0, 1], gw: [30, 300], sleep: [4, 12], steps: [1000, 50000], p: RANGES.p, c: RANGES.c, f: RANGES.f }
+function goalKcal() {
+  const k = kcal({ p: num(GE.p), c: num(GE.c), f: num(GE.f) }), r = num(GE.rate), mm = model(db, today(), r == null ? GOAL : -r)
+  $('#gk').textContent = k == null || isNaN(k) ? '' : `Tus macros suman ${n0(k)} kcal` + (mm.target ? ` · tu meta de hoy con ese ritmo: ${n0(mm.target)} kcal` : '')
+}
+$('#goalsb').onclick = () => {
+  for (const q in GOAL_RANGES) GE[q].value = metas[q] == null ? '' : q == 'rate' ? -metas.rate : metas[q]
+  for (const el of GF.querySelectorAll('input')) el.setCustomValidity('')
+  goalKcal(); $('#goals').showModal()
+}
+GF.oninput = e => { e.target.setCustomValidity(''); goalKcal() }
+GF.onsubmit = e => {
+  e.preventDefault()
+  const next = { ...DEFAULTS }
+  for (const [q, [lo, hi]] of Object.entries(GOAL_RANGES)) {
+    const v = num(GE[q], q == 'steps')
+    if (v == null) continue
+    if (!(v >= lo && v <= hi)) { GE[q].setCustomValidity(`Entre ${lo} y ${n0(hi)}`); return GE[q].reportValidity() }
+    next[q] = q == 'rate' ? -v : q == 'steps' ? Math.round(v) : v
+  }
+  try { localStorage.setItem(MKEY, JSON.stringify(next)) } catch { return alert('No se pudieron guardar las metas.') }
+  metas = next; $('#goals').close(); render()
 }
 
 // respaldo: hoja de compartir de iOS (Archivos/iCloud); si no se puede compartir, descarga

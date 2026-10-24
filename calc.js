@@ -2,7 +2,7 @@
 // Un registro por mañana de check-in: { w: peso de hoy kg, s: sueño de anoche min, p c f: macros de ayer g, st: pasos de ayer }.
 // Así cada fila junta la causa (ayer + la noche) con el efecto (el peso de hoy).
 
-const GOAL = -0.5        // kg/sem
+const GOAL = -0.5        // kg/sem (metas por defecto; tú las cambias en la app)
 const KCAL_KG = 7700     // ponytail: aproximación estándar de 1 kg de grasa; el modelo absorbe el error
 const WINDOW = 28        // días que mira el modelo
 const MIN_DAYS = 14      // días con peso y con kcal antes de dar meta
@@ -13,6 +13,8 @@ const RANGES = { w: [30, 300], s: [0, 960], p: [0, 600], c: [0, 1000], f: [0, 40
 
 const kcal = r => r.p != null && r.c != null && r.f != null ? 4 * r.p + 4 * r.c + 9 * r.f : null
 const mean = a => a.reduce((s, v) => s + v, 0) / a.length
+// mediana: la mitad de los valores queda abajo y la mitad arriba, así un día raro no la mueve
+const median = a => { const s = [...a].sort((x, y) => x - y), h = s.length >> 1; return s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2 }
 
 // fecha local YYYY-MM-DD (no UTC); la aritmética va en UTC sobre fechas sin hora, sin líos de horario de verano
 const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10)
@@ -39,8 +41,19 @@ function slope(xs, ys) {
   return den ? num / den : 0
 }
 
+// peso por semana (lunes a domingo): mediana de los registros de cada semana
+function weekly(db) {
+  const weeks = {}
+  for (const d in db) {
+    if (db[d].w == null) continue
+    const mon = addDays(d, -((new Date(d + 'T00:00Z').getUTCDay() + 6) % 7))
+    weeks[mon] = [...(weeks[mon] || []), db[d].w]
+  }
+  return Object.keys(weeks).sort().map(mon => ({ mon, n: weeks[mon].length, med: median(weeks[mon]) }))
+}
+
 // ritmo, mantenimiento real y meta de hoy con los últimos 28 días; solo { n } mientras calibra
-function model(db, end = today()) {
+function model(db, end = today(), goal = GOAL) {
   const start = addDays(end, 1 - WINDOW), xs = [], ws = [], ks = []
   for (const d in db) {
     if (d < start || d > end) continue
@@ -52,7 +65,7 @@ function model(db, end = today()) {
   if (n < MIN_DAYS) return { n }
   const b = slope(xs, ws)                                    // kg/día
   const tdee = mean(ks) - b * KCAL_KG
-  const target = Math.max(tdee + GOAL * KCAL_KG / 7, tdee * FLOOR)
+  const target = Math.max(tdee + goal * KCAL_KG / 7, tdee * FLOOR)
   return { n, rate: b * 7, tdee, target, pace: (target - tdee) * 7 / KCAL_KG }
 }
 
@@ -69,4 +82,4 @@ const validDb = db => !!db && typeof db == 'object' && !Array.isArray(db) && Obj
   realDate(d) && !!r && typeof r == 'object' &&
   Object.entries(r).every(([k, v]) => RANGES[k] && typeof v == 'number' && v >= RANGES[k][0] && v <= RANGES[k][1]))
 
-if (typeof module == 'object') module.exports = { GOAL, RANGES, kcal, today, addDays, trend, slope, model, zscore, validDb }
+if (typeof module == 'object') module.exports = { GOAL, RANGES, kcal, median, today, addDays, trend, weekly, slope, model, zscore, validDb }
