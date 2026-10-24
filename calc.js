@@ -21,15 +21,11 @@ const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).
 const dayNum = d => Date.parse(d + 'T00:00Z') / 864e5
 const addDays = (d, n) => new Date((dayNum(d) + n) * 864e5).toISOString().slice(0, 10)
 
-// tendencia: EMA α=0.1 sobre los días con peso
-// ponytail: ignora el largo de los huecos; con registro casi diario no importa
+// tendencia: mediana de tus pesos de los últimos 7 días (incluye hoy); un día raro no la mueve
+// ponytail: O(n²) sobre los días con peso; con años de registros sigue siendo instantáneo
 function trend(db) {
-  const out = {}
-  let t
-  for (const d of Object.keys(db).sort()) {
-    const w = db[d].w
-    if (w != null) out[d] = t = t == null ? w : t + 0.1 * (w - t)
-  }
+  const ds = Object.keys(db).filter(d => db[d].w != null).sort(), out = {}
+  for (const d of ds) { const from = addDays(d, -6); out[d] = median(ds.filter(x => x >= from && x <= d).map(x => db[x].w)) }
   return out
 }
 

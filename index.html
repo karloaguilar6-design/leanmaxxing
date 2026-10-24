@@ -28,6 +28,11 @@ html { font: -apple-system-body; -webkit-text-size-adjust: 100%; touch-action: p
 html:has(dialog[open]) { overflow: hidden; }
 body { font-family: var(--sans); line-height: 1.35; color: var(--text); background: var(--bg); max-width: 480px; margin: 0 auto;
   padding: calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 32px); -webkit-tap-highlight-color: transparent; }
+/* como app: mantener el dedo no selecciona texto ni abre "Copiar · Consultar · Traducir"; los campos sí se editan */
+body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+input { -webkit-user-select: auto; user-select: auto; }
+/* franja sólida bajo la hora y la batería: el contenido ya no se ve detrás al hacer scroll */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top); background: var(--bg); z-index: 1; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; touch-action: manipulation; transition: opacity .12s; }
 button:active { opacity: .55; }
 button:disabled { opacity: .3; }
@@ -303,7 +308,7 @@ function render() {
       <div class="pace mono">${st ? `<p>${sign(m.rate)} kg/sem</p><p class="st ${st[0]}">${ico(st[2])}${st[1]}</p>` : `<p class="muted">calibrando<br>${m.n}/${MIN_DAYS} días</p>`}</div>
     </div>
     <div class="split" style="align-items:flex-end">
-      <div><p class="ttl">Peso · tendencia</p><p class="sub">${lastW ? `${lastW == t ? 'hoy' : fmt(lastW)} ${n1(db[lastW].w)} kg` : 'pésate al despertar y registra'}</p>${toGoal ? `<p class="sub">${toGoal}</p>` : ''}</div>
+      <div><p class="ttl">Peso · mediana 7 días</p><p class="sub">${lastW ? `${lastW == t ? 'hoy' : fmt(lastW)} ${n1(db[lastW].w)} kg` : 'pésate al despertar y registra'}</p>${toGoal ? `<p class="sub">${toGoal}</p>` : ''}</div>
       <span class="hint" aria-hidden="true">semanas ›</span>
     </div>
   </section>
@@ -338,13 +343,14 @@ function openWeeks() {
   $('#weeks').showModal()
 }
 
-// gráfica: cada serie como desviación de su promedio en el rango (un solo eje); el peso como puntos + tendencia
+// gráfica: cada serie como desviación de su promedio en el rango (un solo eje); el peso como puntos + mediana de 7 días
 const svg = $('#chart'), tip = $('#tip')
 let G = null   // estado para el dedo
 function drawChart() {
   const W = $('#box').clientWidth, H = 220, L = 12, R = 12, T = 14, B = 28
   const t = today(), first = Object.keys(db).sort()[0] || t
-  const n = ui.range || Math.max(7, Math.round((Date.parse(t) - Date.parse(first)) / 864e5) + 1)
+  const span = Math.round((Date.parse(t) - Date.parse(first)) / 864e5) + 1   // días desde tu primer registro
+  const n = Math.max(7, ui.range ? Math.min(ui.range, span) : span)          // con pocos datos, la gráfica no queda apretada
   const days = Array.from({ length: n }, (_, i) => addDays(t, i + 1 - n))
   const X = i => L + i * (W - L - R) / (n - 1), Y = z => T + (2.5 - z) / 5 * (H - T - B)
   const tr = trend(db)
@@ -394,7 +400,7 @@ function scrub(e) {
   $('#hl').innerHTML = lines.map(l => l.z[i] == null ? '' : `<circle class="dot" cx="${x}" cy="${Y(l.z[i])}" r="4" style="fill:var(--s-${l.s.k})"/>`).join('')
   tip.innerHTML = `<p class="muted">${fmt(d, { weekday: 'short', day: 'numeric', month: 'short' })}</p>` +
     (lines.map(l => l.vals[i] == null ? '' : `<p><i style="background:var(--s-${l.s.k})"></i><b>${l.s.show(l.vals[i])}</b> <span>${l.s.name}</span></p>`).join('') || '<p class="muted">sin registro</p>') +
-    (lines.some(l => l.s.k == 'w') && tr[d] != null ? `<p><i style="background:var(--s-w)"></i><b>${n1(tr[d])} kg</b> <span>tendencia</span></p>` : '')
+    (lines.some(l => l.s.k == 'w') && tr[d] != null ? `<p><i style="background:var(--s-w)"></i><b>${n1(tr[d])} kg</b> <span>mediana 7 d</span></p>` : '')
   tip.hidden = false
   tip.style.left = (x + 12 + tip.offsetWidth > W ? x - 12 - tip.offsetWidth : x + 12) + 'px'
 }

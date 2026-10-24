@@ -25,6 +25,13 @@ near(m.tdee, 1800); near(m.target, 1350); assert.ok(m.pace > L.GOAL)
 
 // peso constante → tendencia constante; z centrado en tu promedio
 assert.deepStrictEqual(Object.values(L.trend(flat)), Array(20).fill(80))
+
+// tendencia = mediana de los últimos 7 días: tus primeros registros dan 86.0 → 85.65 → 85.5
+Object.values(L.trend({ '2026-10-22': { w: 86 }, '2026-10-23': { w: 85.3 }, '2026-10-24': { w: 85.5 } }))
+  .forEach((v, i) => near(v, [86, 85.65, 85.5][i], 1e-9))
+// un peso de hace 8 días ya no entra; un día raro no mueve la mediana
+near(L.trend({ '2026-10-01': { w: 90 }, '2026-10-08': { w: 80 } })['2026-10-08'], 80, 1e-9)
+near(L.trend({ '2026-10-20': { w: 80 }, '2026-10-21': { w: 80.2 }, '2026-10-22': { w: 86 } })['2026-10-22'], 80.2, 1e-9)
 assert.deepStrictEqual(L.zscore([1, null, 3]).z, [-1, null, 1])
 
 // una meta más agresiva (−1 kg/sem) topa en el piso del 75 %
